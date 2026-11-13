@@ -18,7 +18,7 @@ El objetivo es centralizar los respaldos de red de forma segura, organizada y si
 3.  **Routers MikroTik:** Con RouterOS v6 o v7 (se recomienda v7+), con conectividad hacia el servidor SFTP.
 4.  **Carpetas Creadas:** ⚠️ **IMPORTANTE:** Debes crear manualmente las carpetas en el servidor SFTP para cada router (ej. `Router Oficina 1`, `Router Sucursal`). El script **no** crea carpetas en el servidor de forma automática.
 
-![folder-sftp](image.png)
+<img width="960" height="596" alt="image" src="https://github.com/user-attachments/assets/08cc7fc7-2c4d-4b60-ba3f-898e8b4a1997" />
 
 ## ⚙️ Configuración en el Router MikroTik
 
