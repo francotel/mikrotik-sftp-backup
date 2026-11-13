@@ -74,3 +74,7 @@ Para que el respaldo se ejecute automáticamente todos los días, crea una tarea
 
 ```routeros
 /system scheduler add name="backup-diario-sftp" start-time=03:00:00 interval=1d on-event="/system script run backup-sftp"
+```
+
+<img width="1122" height="1402" alt="Backups centralizados de MikroTik" src="https://github.com/user-attachments/assets/a600486c-50b5-47c0-954f-30fb6cba8120" />
+
