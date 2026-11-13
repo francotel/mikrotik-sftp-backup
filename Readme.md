@@ -30,41 +30,50 @@ Ve a **System > Scripts** y crea un nuevo script llamado `backup-sftp`. Pega el 
 
 ```routeros
 # --- 1. Variables de configuración del Servidor SFTP ---
-:local sftpServer "192.168.100.9"       # IP de tu servidor SFTP
-:local sftpPort 2022                    # Puerto SFTP (22 por defecto, o el que uses)
-:local sftpUser "mikrotik"              # Usuario SFTP
-:local sftpPass "TuContraseñaSegura"    # Contraseña SFTP
+:local sftpServer "192.168.100.X"
+:local sftpPort 2022
+:local sftpUser "user"
+:local sftpPass "password"
 
 # --- 2. Definir la carpeta en el servidor ---
-# Escribe EXACTAMENTE el nombre de la carpeta que creaste en el servidor SFTP
-:local sftpFolder "Router Oficina 1"    
+# ⚠️ CAMBIA ESTO en cada router por el nombre exacto de su carpeta en SFTPGo
+:local sftpFolder "RB4011-ADMIN-1"    
 
 # --- 3. Obtener el nombre del router automáticamente ---
 :local deviceModel [/system identity get name]
 
-# --- 4. Variables de fecha y hora ---
-:local fecha [/system clock get date]
-:local hora [/system clock get time]
+# --- 4. Variables de fecha y hora (Compatible con v6 y v7) ---
+# Extraemos día, mes y año para evitar las "/"
+:local dateRaw [/system clock get date]
+:local day [:pick $dateRaw 4 6]
+:local month [:pick $dateRaw 0 3]
+:local year [:pick $dateRaw 7 11]
 
-# Nombre del archivo: Identidad del router + fecha + hora
-:local nombreBackup ($deviceModel . "-backup-" . $fecha . "-" . $hora)
-:local nombreExport ($deviceModel . "-export-" . $fecha . "-" . $hora)
+# Extraemos la hora y evitamos los ":"
+:local timeRaw [/system clock get time]
+:local hour [:pick $timeRaw 0 2]
+:local min [:pick $timeRaw 3 5]
+:local sec [:pick $timeRaw 6 8]
 
-# --- 5. Crear los respaldos localmente ---
-/system backup save name=$nombreBackup password="clave-del-backup"
+# Construimos un nombre limpio: Router-backup-2026-nov-13-14-30-00
+:local nombreBase ($deviceModel . "-backup-" . $year . "-" . $month . "-" . $day . "-" . $hour . "-" . $min . "-" . $sec)
+:local nombreExport ($deviceModel . "-export-" . $year . "-" . $month . "-" . $day . "-" . $hour . "-" . $min . "-" . $sec)
+
+# --- 5. Crear los respaldos localmente (Sin contraseña) ---
+/system backup save name=$nombreBase
 /export file=$nombreExport
 :delay 5s
 
 # --- 6. Construir las URLs completas ---
-:local urlBackup ("sftp://" . $sftpServer . ":" . $sftpPort . "/" . $sftpFolder . "/" . $nombreBackup . ".backup")
+:local urlBackup ("sftp://" . $sftpServer . ":" . $sftpPort . "/" . $sftpFolder . "/" . $nombreBase . ".backup")
 :local urlExport ("sftp://" . $sftpServer . ":" . $sftpPort . "/" . $sftpFolder . "/" . $nombreExport . ".rsc")
 
 # --- 7. Subir archivos ---
-/tool fetch url=$urlBackup src-path=($nombreBackup . ".backup") user=$sftpUser password=$sftpPass upload=yes
+/tool fetch url=$urlBackup src-path=($nombreBase . ".backup") user=$sftpUser password=$sftpPass upload=yes
 /tool fetch url=$urlExport src-path=($nombreExport . ".rsc") user=$sftpUser password=$sftpPass upload=yes
 
-# --- 8. Borrar archivos locales ---
-/file remove [find name=($nombreBackup . ".backup")]
+# --- 8. Borrar archivos locales para no llenar la memoria ---
+/file remove [find name=($nombreBase . ".backup")]
 /file remove [find name=($nombreExport . ".rsc")]
 ```
 
